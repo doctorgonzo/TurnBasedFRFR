@@ -1,6 +1,7 @@
 using Mirror;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class clicker : NetworkBehaviour
 {
@@ -11,7 +12,8 @@ public class clicker : NetworkBehaviour
     public static clicker Local;
 
     [SerializeField] Texture2D cursorSprite;
-    [SerializeField] Texture2D grassSprite;
+    [FormerlySerializedAs("grassSprite")]
+    [SerializeField] Texture2D roadSprite;
     [SerializeField] Texture2D waterSprite;
     [SerializeField] Texture2D mountainSprite;
     [SerializeField] Texture2D infantrySprite;
@@ -19,7 +21,7 @@ public class clicker : NetworkBehaviour
     [SerializeField] Texture2D machinegunSprite;
     [SerializeField] Turns turnsScript;
 
-    [SerializeField] TMP_Text gCount;
+    [SerializeField] TMP_Text rCount;
     [SerializeField] TMP_Text wCount;
     [SerializeField] TMP_Text mCount;
     [SerializeField] TMP_Text iCount;
@@ -41,7 +43,7 @@ public class clicker : NetworkBehaviour
 
     // Stock counts are server-authoritative: only server code changes them (place/pick-up
     // commands), and the SyncVar hook refreshes the owning player's HUD when they arrive.
-    [SyncVar(hook = nameof(OnCountChanged))] int grassCount = 9;
+    [SyncVar(hook = nameof(OnCountChanged))] int roadCount = 9;
     [SyncVar(hook = nameof(OnCountChanged))] int waterCount = 3;
     [SyncVar(hook = nameof(OnCountChanged))] int mountainCount = 3;
     [SyncVar(hook = nameof(OnCountChanged))] public int infantryCount = 2;
@@ -242,7 +244,7 @@ public class clicker : NetworkBehaviour
         // square are guaranteed to be on the same canvas. Looking counts up independently by
         // name is unreliable here: the HUD is instantiated in more than one canvas, and
         // GameObject.Find can return the number from one canvas and the square from another.
-        gCount = CountUnder("GrassImage", "GrassCount");
+        rCount = CountUnder("RoadImage", "RoadCount");
         wCount = CountUnder("WaterImage", "WaterCount");
         mCount = CountUnder("MountainImage", "MountainCount");
         // Infantry has its own dedicated number child (InfantryCount), like the land types.
@@ -259,7 +261,7 @@ public class clicker : NetworkBehaviour
         if (Local == this) Local = null;
     }
 
-    // grass/water/mountain show their remaining count in a child object of the palette square.
+    // road/water/mountain show their remaining count in a child object of the palette square.
     static TMP_Text CountUnder(string imageName, string countName)
     {
         GameObject img = GameObject.Find(imageName);
@@ -283,7 +285,7 @@ public class clicker : NetworkBehaviour
     // Pushes the current stock numbers to the HUD. Guarded so a missing label can't spam NREs.
     void RefreshCounts()
     {
-        SetText(gCount, grassCount);
+        SetText(rCount, roadCount);
         SetText(wCount, waterCount);
         SetText(mCount, mountainCount);
         SetText(iCount, infantryCount);
@@ -300,7 +302,7 @@ public class clicker : NetworkBehaviour
     {
         switch (land)
         {
-            case LandType.Grass: return grassCount;
+            case LandType.Road: return roadCount;
             case LandType.Water: return waterCount;
             case LandType.Mountain: return mountainCount;
             default: return 0;
@@ -332,7 +334,7 @@ public class clicker : NetworkBehaviour
     {
         switch (land)
         {
-            case LandType.Grass: grassCount += delta; break;
+            case LandType.Road: roadCount += delta; break;
             case LandType.Water: waterCount += delta; break;
             case LandType.Mountain: mountainCount += delta; break;
         }
@@ -372,7 +374,7 @@ public class clicker : NetworkBehaviour
         // Palette selection is turn-gated too: off-turn you can't pick anything up,
         // so there's nothing "in hand" to place the moment your turn starts.
         else if (!IsMyTurn()) return;
-        else if (hit.collider.CompareTag("grass")) SelectedGrass();
+        else if (hit.collider.CompareTag("road")) SelectedRoad();
         else if (hit.collider.CompareTag("water")) SelectedWater();
         else if (hit.collider.CompareTag("mountain")) SelectedMountain();
         else if (hit.collider.CompareTag("infantry")) SelectedInfantry();
@@ -380,7 +382,7 @@ public class clicker : NetworkBehaviour
         else if (hit.collider.CompareTag("machinegun")) SelectedMachinegun();
     }
 
-    public void SelectedGrass() => SetCursorTo(CursorType.Grass, grassSprite);
+    public void SelectedRoad() => SetCursorTo(CursorType.Road, roadSprite);
     public void SelectedWater() => SetCursorTo(CursorType.Water, waterSprite);
     public void SelectedMountain() => SetCursorTo(CursorType.Mountain, mountainSprite);
     public void SelectedInfantry() => SetCursorTo(CursorType.Infantry, infantrySprite);

@@ -1,13 +1,15 @@
 using UnityEngine;
 
-// Shared game-state types. These used to be magic strings ("grass", "infantry", "default")
+// Shared game-state types. These used to be magic strings ("road", "infantry", "default")
 // scattered across clicker/tile/MapClicker; enums sync over Mirror just as well and can't typo.
-public enum LandType : byte { None, Grass, Water, Mountain }
+// Note: values sync as bytes, so keep each member's position (Road stays at 1) to avoid
+// remapping already-placed tiles.
+public enum LandType : byte { None, Road, Water, Mountain }
 
 public enum UnitType : byte { None, Infantry, Armor, Machinegun }
 
 // What the player currently has "in hand" (drives the mouse cursor and what a tile click does).
-public enum CursorType : byte { Default, Grass, Water, Mountain, Infantry, Armor, Machinegun }
+public enum CursorType : byte { Default, Road, Water, Mountain, Infantry, Armor, Machinegun }
 
 public static class GameTypes
 {
@@ -17,7 +19,7 @@ public static class GameTypes
     {
         switch (land)
         {
-            case LandType.Grass: return Color.green;
+            case LandType.Road: return Color.green;
             case LandType.Water: return Color.blue;
             case LandType.Mountain: return new Color(150f / 255f, 75f / 255f, 0f);
             default: return Color.white;
@@ -41,7 +43,7 @@ public static class GameTypes
     {
         switch (cursor)
         {
-            case CursorType.Grass: return LandType.Grass;
+            case CursorType.Road: return LandType.Road;
             case CursorType.Water: return LandType.Water;
             case CursorType.Mountain: return LandType.Mountain;
             default: return LandType.None;
