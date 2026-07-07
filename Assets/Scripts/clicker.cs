@@ -27,6 +27,18 @@ public class clicker : NetworkBehaviour
     [SerializeField] TMP_Text mgCount;
     [SerializeField] public GameObject uiCanvas;
 
+    [Header("Unit rules")]
+    [Tooltip("Drag the Unit Database asset here (Assets/Units/Units). Drives starting " +
+             "counts and per-unit move/attack rules.")]
+    [SerializeField] UnitDatabase unitDatabase;
+    [Tooltip("Number of columns in the board grid — the UICanvas GridLayoutGroup constraint " +
+             "count. Used to turn a tile index into a (row, col) for range math.")]
+    [SerializeField] int boardWidth = 8;
+
+    // Server-side rules, built from the inspector-assigned database. Available on every
+    // instance (it's stateless given the database), so clients can preview ranges too.
+    public UnitRules Rules { get; private set; }
+
     // Stock counts are server-authoritative: only server code changes them (place/pick-up
     // commands), and the SyncVar hook refreshes the owning player's HUD when they arrive.
     [SyncVar(hook = nameof(OnCountChanged))] int grassCount = 9;
@@ -110,8 +122,30 @@ public class clicker : NetworkBehaviour
 
     // ---------------------------------------------------------------- setup
 
+    // Rules are needed by both OnStartServer (to seed counts) and Start; build once, lazily,
+    // regardless of which runs first.
+    void EnsureRules()
+    {
+        if (Rules == null) Rules = new UnitRules(unitDatabase, boardWidth);
+    }
+
+    public override void OnStartServer()
+    {
+        EnsureRules();
+        // Seed each player's stock from the UnitDef assets so starting counts are set in the
+        // inspector, not hardcoded. Falls back to the SyncVar defaults if no database is wired.
+        if (unitDatabase != null)
+        {
+            infantryCount = Rules.StartingCount(UnitType.Infantry);
+            armorCount = Rules.StartingCount(UnitType.Armor);
+            machinegunCount = Rules.StartingCount(UnitType.Machinegun);
+        }
+        base.OnStartServer();
+    }
+
     void Start()
     {
+        EnsureRules();
         // uiCanvas is used by the server inside the place commands (it indexes tiles via
         // GetChild), so it must be resolved on every instance, not just the local player.
         // The serialized reference points at PlayerInfoCanvas (the palette), not the tile
