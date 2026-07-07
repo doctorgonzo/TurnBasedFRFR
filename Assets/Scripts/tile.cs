@@ -12,10 +12,16 @@ public class tile : NetworkBehaviour
     // 0 = unowned; otherwise the player number of whoever placed the occupying unit.
     [SyncVar]
     public int owningPlayer;
-    // Turns.TurnIndex when the occupying unit was placed (-1 = never). A unit can't be
-    // picked back up on the turn it was placed.
+    // Turns.TurnIndex when the occupying unit was placed (-1 = never). A unit can't act on
+    // the turn it was placed.
     [SyncVar]
     public int placedOnTurn = -1;
+    // Turns.TurnIndex when the occupying unit last moved / attacked (-1 = not yet this unit).
+    // Each is allowed once per turn; the stamp naturally "expires" when the turn advances.
+    [SyncVar]
+    public int movedOnTurn = -1;
+    [SyncVar]
+    public int attackedOnTurn = -1;
     // Current health of the occupying unit (0 when the tile is empty). Server sets it from
     // UnitDef.maxHealth on placement; syncs to every client and drives the health label.
     [SyncVar(hook = nameof(OnHealthChanged))]
@@ -66,6 +72,24 @@ public class tile : NetworkBehaviour
         EnsureHealthLabel();
         healthLabel.gameObject.SetActive(true);
         healthLabel.text = health.ToString();
+    }
+
+    // Client-only selection highlight: a yellow outline around the tile while it's the
+    // player's currently selected unit. Purely visual, driven by MapClicker.
+    public void SetSelected(bool selected)
+    {
+        Outline outline = GetComponent<Outline>();
+        if (selected)
+        {
+            if (outline == null) outline = gameObject.AddComponent<Outline>();
+            outline.effectColor = Color.yellow;
+            outline.effectDistance = new Vector2(5f, 5f);
+            outline.enabled = true;
+        }
+        else if (outline != null)
+        {
+            outline.enabled = false;
+        }
     }
 
     // Builds the TMP label as a child stretched over the whole tile, so its centered text

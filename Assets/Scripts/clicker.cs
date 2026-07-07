@@ -100,9 +100,76 @@ public class clicker : NetworkBehaviour
         target.health = hp > 0 ? hp : 1;
     }
 
-    // Credits a unit back to this player's stock (used by MapClicker's pick-up command).
+    // Moves this player's unit from one tile to another. Called on the acting player's own
+    // clicker (so `this` is that player on the server). Everything the client checked in
+    // MapClicker is re-verified here — turn, ownership, range, once-per-turn, empty target.
+    [Command(requiresAuthority = false)]
+    public void CmdMoveUnit(int fromIndex, int toIndex, NetworkConnectionToClient sender = null)
+    {
+        int player = PlayerNumberOf(sender);
+        if (!IsTurnOf(player)) return;
+
+        tile from = TileAt(fromIndex);
+        tile to = TileAt(toIndex);
+        if (from == null || to == null) return;
+        if (from.occupyingUnit == UnitType.None || from.owningPlayer != player) return;
+        if (to.occupyingUnit != UnitType.None) return; // can't move onto an occupied tile
+
+        int turn = turnsScript != null ? turnsScript.TurnIndex : 0;
+        if (from.placedOnTurn == turn) return; // just placed: can't act until next turn
+        if (from.movedOnTurn == turn) return;  // already moved this turn
+        if (Rules == null || !Rules.CanMove(from.occupyingUnit, fromIndex, toIndex)) return;
+
+        // Units are just data on a tile, so a move copies that data to the destination and
+        // clears the source. Attack state carries over (moving doesn't refresh your attack);
+        // the move stamp is set so it can't move again this turn.
+        to.occupyingUnit = from.occupyingUnit;
+        to.owningPlayer = from.owningPlayer;
+        to.health = from.health;
+        to.placedOnTurn = from.placedOnTurn;
+        to.attackedOnTurn = from.attackedOnTurn;
+        to.movedOnTurn = turn;
+        ClearUnit(from);
+    }
+
+    // Attacks an enemy unit within range, dealing this unit's UnitDef damage. A unit that
+    // reaches 0 health is removed from the board.
+    [Command(requiresAuthority = false)]
+    public void CmdAttackUnit(int fromIndex, int targetIndex, NetworkConnectionToClient sender = null)
+    {
+        int player = PlayerNumberOf(sender);
+        if (!IsTurnOf(player)) return;
+
+        tile from = TileAt(fromIndex);
+        tile target = TileAt(targetIndex);
+        if (from == null || target == null) return;
+        if (from.occupyingUnit == UnitType.None || from.owningPlayer != player) return;
+        // Target must be an enemy unit (occupied, owned by someone else, not neutral).
+        if (target.occupyingUnit == UnitType.None ||
+            target.owningPlayer == player || target.owningPlayer == 0) return;
+
+        int turn = turnsScript != null ? turnsScript.TurnIndex : 0;
+        if (from.placedOnTurn == turn) return;    // just placed: can't act until next turn
+        if (from.attackedOnTurn == turn) return;  // already attacked this turn
+        if (Rules == null || !Rules.CanAttack(from.occupyingUnit, fromIndex, targetIndex)) return;
+
+        from.attackedOnTurn = turn;
+        int newHealth = target.health - Mathf.Max(0, Rules.AttackDamage(from.occupyingUnit));
+        if (newHealth <= 0) ClearUnit(target); // destroyed
+        else target.health = newHealth;
+    }
+
+    // Wipes a tile's unit data back to "empty" (the land underneath is untouched).
     [Server]
-    public void ServerRefund(UnitType unit) => AddCount(unit, 1);
+    void ClearUnit(tile t)
+    {
+        t.occupyingUnit = UnitType.None;
+        t.owningPlayer = 0;
+        t.health = 0;
+        t.placedOnTurn = -1;
+        t.movedOnTurn = -1;
+        t.attackedOnTurn = -1;
+    }
 
     // The host owns the local connection and is player 1; any other connection is player 2.
     public static int PlayerNumberOf(NetworkConnectionToClient sender) =>
@@ -114,7 +181,7 @@ public class clicker : NetworkBehaviour
         return (turnsScript.isPlayer1Turn ? 1 : 2) == player;
     }
 
-    tile TileAt(int tileIndex)
+    public tile TileAt(int tileIndex)
     {
         if (uiCanvas == null || tileIndex < 0 || tileIndex >= uiCanvas.transform.childCount)
         {
@@ -318,17 +385,6 @@ public class clicker : NetworkBehaviour
     public void SelectedInfantry() => SetCursorTo(CursorType.Infantry, infantrySprite);
     public void SelectedArmor() => SetCursorTo(CursorType.Armor, armorSprite);
     public void SelectedMachinegun() => SetCursorTo(CursorType.Machinegun, machinegunSprite);
-
-    // Puts a just-picked-up unit "in hand" (used by MapClicker after the server confirms).
-    public void SelectCursorFor(UnitType unit)
-    {
-        switch (unit)
-        {
-            case UnitType.Infantry: SelectedInfantry(); break;
-            case UnitType.Armor: SelectedArmor(); break;
-            case UnitType.Machinegun: SelectedMachinegun(); break;
-        }
-    }
 
     public void ClickedTile(GameObject tileObject)
     {
