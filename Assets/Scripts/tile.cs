@@ -11,6 +11,10 @@ public class tile : NetworkBehaviour
     // 0 = unowned; otherwise the player number of whoever placed the occupying unit.
     [SyncVar]
     public int owningPlayer;
+    // Turns.TurnIndex when the occupying unit was placed (-1 = never). A unit can't be
+    // picked back up on the turn it was placed.
+    [SyncVar]
+    public int placedOnTurn = -1;
 
     void OnLandTypeChanged(LandType oldType, LandType newType) => RefreshColor();
     void OnUnitTypeChanged(UnitType oldType, UnitType newType) => RefreshColor();

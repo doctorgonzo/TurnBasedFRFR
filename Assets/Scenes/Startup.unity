@@ -639,7 +639,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1408121483}
         m_TargetAssemblyTypeName: MyNetworkManager, Assembly-CSharp
-        m_MethodName: JoinButton
+        m_MethodName: StartClient
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

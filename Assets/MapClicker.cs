@@ -25,6 +25,8 @@ public class MapClicker : NetworkBehaviour
         if (target == null || target.occupyingUnit == UnitType.None) return;
         // Only your own units, and only on your turn (the server re-checks both).
         if (target.owningPlayer != local.LocalPlayerNumber || !local.IsMyTurn()) return;
+        // A unit placed this turn is locked in until next turn.
+        if (turns != null && target.placedOnTurn == turns.TurnIndex) return;
 
         CmdPickUpUnit(target);
     }
@@ -42,6 +44,11 @@ public class MapClicker : NetworkBehaviour
         if (target.owningPlayer != senderPlayer)
         {
             Debug.LogWarning($"Rejected pick-up of a unit player {senderPlayer} doesn't own.");
+            return;
+        }
+        if (turns != null && target.placedOnTurn == turns.TurnIndex)
+        {
+            Debug.LogWarning($"Rejected pick-up: unit was placed this turn.");
             return;
         }
 

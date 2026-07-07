@@ -80,6 +80,8 @@ public class clicker : NetworkBehaviour
         target.occupyingUnit = unit;
         // The unit belongs to whoever actually placed it.
         target.owningPlayer = senderPlayer;
+        // Stamp the placement turn so the unit can't be picked back up this turn.
+        target.placedOnTurn = turnsScript != null ? turnsScript.TurnIndex : -1;
     }
 
     // Credits a unit back to this player's stock (used by MapClicker's pick-up command).

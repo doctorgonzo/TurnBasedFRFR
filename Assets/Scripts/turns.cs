@@ -42,6 +42,10 @@ public class Turns : NetworkBehaviour
         base.OnStartClient();
     }
 
+    // Monotonic index of the current half-turn (increments every time either player ends
+    // their turn). Lets tiles record WHEN a unit was placed, e.g. to block same-turn pick-up.
+    public int TurnIndex => turnNumber * 2 + (isPlayer1Turn ? 0 : 1);
+
     // onClick listeners must be parameterless, and CmdEndTurn now takes the injected sender.
     void OnEndTurnClicked() => CmdEndTurn();
 
