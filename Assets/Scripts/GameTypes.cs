@@ -28,9 +28,11 @@ public static class GameTypes
     {
         switch (unit)
         {
+            // Matched to the palette square colors in PlayerInfoCanvas.prefab, so a placed
+            // unit looks the same on the board as it does in the palette.
             case UnitType.Infantry: return Color.red;
-            case UnitType.Armor: return Color.gray;
-            case UnitType.Machinegun: return new Color(1f, 0.64f, 0f);
+            case UnitType.Armor: return new Color(0.9396226f, 0.6009351f, 0.10459942f);   // orange
+            case UnitType.Machinegun: return new Color(0.7129441f, 0.07636161f, 0.735849f); // purple
             default: return Color.white;
         }
     }

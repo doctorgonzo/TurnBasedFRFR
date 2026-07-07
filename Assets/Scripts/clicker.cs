@@ -139,9 +139,8 @@ public class clicker : NetworkBehaviour
         mCount = CountUnder("MountainImage", "MountainCount");
         // Infantry has its own dedicated number child (InfantryCount), like the land types.
         iCount = CountUnder("InfantryImage", "InfantryCount");
-        // Armor/machinegun have no separate number object, so their label shows the count.
-        aCount = LabelOf("ArmorImage");
-        mgCount = LabelOf("MachinegunImage");
+        aCount = CountUnder("ArmorImage", "ArmorCount");
+        mgCount = CountUnder("MachinegunImage", "MachinegunCount");
         RefreshCounts();
         // Default cursor is the yellow square, set once when the local player spawns.
         SetCursorTo(CursorType.Default, cursorSprite);
@@ -159,13 +158,6 @@ public class clicker : NetworkBehaviour
         if (img == null) return null;
         Transform t = img.transform.Find(countName);
         return t != null ? t.GetComponent<TMP_Text>() : img.GetComponentInChildren<TMP_Text>();
-    }
-
-    // infantry/armor/machinegun have only a label under the square; it shows the count.
-    static TMP_Text LabelOf(string imageName)
-    {
-        GameObject img = GameObject.Find(imageName);
-        return img != null ? img.GetComponentInChildren<TMP_Text>() : null;
     }
 
     // ---------------------------------------------------------------- counts
