@@ -19,7 +19,7 @@ public static class GameTypes
     {
         switch (land)
         {
-            case LandType.Road: return Color.green;
+            case LandType.Road: return Color.gray;
             case LandType.Water: return Color.blue;
             case LandType.Mountain: return new Color(150f / 255f, 75f / 255f, 0f);
             default: return Color.white;
