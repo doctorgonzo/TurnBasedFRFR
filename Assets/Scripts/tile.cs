@@ -92,6 +92,25 @@ public class tile : NetworkBehaviour
         }
     }
 
+    // Client-only move-range highlight: a green outline on an empty tile the selected unit
+    // could move to. Shares the Outline component with SetSelected, but a move target is
+    // never the selected tile itself, so the two never compete for it.
+    public void SetMoveHighlight(bool movable)
+    {
+        Outline outline = GetComponent<Outline>();
+        if (movable)
+        {
+            if (outline == null) outline = gameObject.AddComponent<Outline>();
+            outline.effectColor = Color.green;
+            outline.effectDistance = new Vector2(4f, 4f);
+            outline.enabled = true;
+        }
+        else if (outline != null)
+        {
+            outline.enabled = false;
+        }
+    }
+
     // Builds the TMP label as a child stretched over the whole tile, so its centered text
     // sits in the middle of the unit. Uses the project's default TMP font.
     void EnsureHealthLabel()

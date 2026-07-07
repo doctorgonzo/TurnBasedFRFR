@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Mirror;
 using UnityEngine;
 
@@ -12,6 +13,8 @@ public class MapClicker : NetworkBehaviour
 
     // The local player's currently selected unit tile (null = nothing selected).
     private tile selectedTile;
+    // Empty tiles currently green-outlined as valid move destinations for the selection.
+    private readonly List<tile> moveHighlights = new List<tile>();
 
     private void Update()
     {
@@ -82,11 +85,39 @@ public class MapClicker : NetworkBehaviour
         Deselect();
         selectedTile = t;
         t.SetSelected(true);
+        ShowMoveRange(t);
+    }
+
+    // Green-outlines every empty tile the selected unit could move to — but only when the
+    // unit can actually still move this turn (not just placed, hasn't already moved).
+    void ShowMoveRange(tile from)
+    {
+        clicker local = clicker.Local;
+        if (local == null || local.Rules == null || local.uiCanvas == null) return;
+
+        int turn = turns != null ? turns.TurnIndex : 0;
+        if (from.placedOnTurn == turn || from.movedOnTurn == turn) return; // can't move now
+
+        int fromIndex = from.transform.GetSiblingIndex();
+        UnitType unit = from.occupyingUnit;
+        int count = local.uiCanvas.transform.childCount;
+        for (int i = 0; i < count; i++)
+        {
+            tile candidate = local.TileAt(i);
+            if (candidate == null || candidate == from) continue;
+            if (candidate.occupyingUnit != UnitType.None) continue; // occupied
+            if (!local.Rules.CanMove(unit, fromIndex, i)) continue;  // out of range
+            candidate.SetMoveHighlight(true);
+            moveHighlights.Add(candidate);
+        }
     }
 
     void Deselect()
     {
         if (selectedTile != null) selectedTile.SetSelected(false);
         selectedTile = null;
+        foreach (tile t in moveHighlights)
+            if (t != null) t.SetMoveHighlight(false);
+        moveHighlights.Clear();
     }
 }
