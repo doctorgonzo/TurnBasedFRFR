@@ -94,6 +94,10 @@ public class clicker : NetworkBehaviour
         target.owningPlayer = senderPlayer;
         // Stamp the placement turn so the unit can't be picked back up this turn.
         target.placedOnTurn = turnsScript != null ? turnsScript.TurnIndex : -1;
+        // Full health on placement, from the UnitDef. Fall back to 1 if no database is wired
+        // so the health label still appears.
+        int hp = Rules != null ? Rules.MaxHealth(unit) : 0;
+        target.health = hp > 0 ? hp : 1;
     }
 
     // Credits a unit back to this player's stock (used by MapClicker's pick-up command).

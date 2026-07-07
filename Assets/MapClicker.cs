@@ -57,6 +57,7 @@ public class MapClicker : NetworkBehaviour
         UnitType unit = target.occupyingUnit;
         target.occupyingUnit = UnitType.None; // SyncVar hooks restore the tile color everywhere
         target.owningPlayer = 0;
+        target.health = 0; // clears the health label everywhere via its hook
 
         // Refund goes to the clicker owned by whoever picked the unit up, not the scene one.
         clicker senderClicker = sender != null && sender.identity != null

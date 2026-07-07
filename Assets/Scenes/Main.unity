@@ -2702,6 +2702,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1950877150}
     - target: {fileID: 8953135292192973952, guid: 773b3e1fe0ef0f243b8d0babd6e98e92, type: 3}
+      propertyPath: unitDatabase
+      value: 
+      objectReference: {fileID: 11400000, guid: cccc1111dddd2222eeee3333ffff4444, type: 2}
+    - target: {fileID: 8953135292192973952, guid: 773b3e1fe0ef0f243b8d0babd6e98e92, type: 3}
       propertyPath: infantryCount
       value: 2
       objectReference: {fileID: 0}
