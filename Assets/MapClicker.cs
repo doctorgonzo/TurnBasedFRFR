@@ -74,10 +74,11 @@ public class MapClicker : NetworkBehaviour
             return;
         }
 
-        // Move: target is an empty tile within move range, and we haven't moved yet.
+        // Move: target is a tile reachable within the move budget, and we haven't moved yet.
+        // Same reachable set (terrain costs + blocking) the server validates against.
         if (clicked.occupyingUnit == UnitType.None)
         {
-            if (selectedTile.movedOnTurn != turn && rules.CanMove(unit, fromIndex, toIndex))
+            if (selectedTile.movedOnTurn != turn && local.MovableTilesFrom(fromIndex).ContainsKey(toIndex))
                 local.CmdMoveUnit(fromIndex, toIndex);
         }
     }
@@ -91,25 +92,22 @@ public class MapClicker : NetworkBehaviour
         ShowAttackRange(t);
     }
 
-    // Green-outlines every empty tile the selected unit could move to — but only when the
-    // unit can actually still move this turn (not just placed, hasn't already moved).
+    // Green-outlines every tile the selected unit could move to — but only when the unit can
+    // actually still move this turn (not just placed, hasn't already moved). The reachable set
+    // (terrain costs + unit blocking) comes from the same helper the server move command uses.
     void ShowMoveRange(tile from)
     {
         clicker local = clicker.Local;
-        if (local == null || local.Rules == null || local.uiCanvas == null) return;
+        if (local == null) return;
 
         int turn = turns != null ? turns.TurnIndex : 0;
         if (from.placedOnTurn == turn || from.movedOnTurn == turn) return; // can't move now
 
         int fromIndex = from.transform.GetSiblingIndex();
-        UnitType unit = from.occupyingUnit;
-        int count = local.uiCanvas.transform.childCount;
-        for (int i = 0; i < count; i++)
+        foreach (int index in local.MovableTilesFrom(fromIndex).Keys)
         {
-            tile candidate = local.TileAt(i);
-            if (candidate == null || candidate == from) continue;
-            if (candidate.occupyingUnit != UnitType.None) continue; // occupied
-            if (!local.Rules.CanMove(unit, fromIndex, i)) continue;  // out of range
+            tile candidate = local.TileAt(index);
+            if (candidate == null) continue;
             candidate.SetMoveHighlight(true);
             moveHighlights.Add(candidate);
         }

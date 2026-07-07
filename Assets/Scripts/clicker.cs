@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Mirror;
 using TMPro;
 using UnityEngine;
@@ -120,7 +121,8 @@ public class clicker : NetworkBehaviour
         int turn = turnsScript != null ? turnsScript.TurnIndex : 0;
         if (from.placedOnTurn == turn) return; // just placed: can't act until next turn
         if (from.movedOnTurn == turn) return;  // already moved this turn
-        if (Rules == null || !Rules.CanMove(from.occupyingUnit, fromIndex, toIndex)) return;
+        // Destination must be reachable within the move budget, accounting for terrain costs.
+        if (!MovableTilesFrom(fromIndex).ContainsKey(toIndex)) return;
 
         // Units are just data on a tile, so a move copies that data to the destination and
         // clears the source. Attack state carries over (moving doesn't refresh your attack);
@@ -192,6 +194,23 @@ public class clicker : NetworkBehaviour
             return null;
         }
         return uiCanvas.transform.GetChild(tileIndex).GetComponent<tile>();
+    }
+
+    // Tiles the unit on `fromIndex` can move to this turn (index -> movement cost), honoring
+    // terrain costs and unit blocking. Used by both the server move command and the client's
+    // green move-range highlight, so they always agree. Empty if the tile has no unit.
+    public Dictionary<int, float> MovableTilesFrom(int fromIndex)
+    {
+        var empty = new Dictionary<int, float>();
+        if (Rules == null || uiCanvas == null) return empty;
+        tile from = TileAt(fromIndex);
+        if (from == null || from.occupyingUnit == UnitType.None) return empty;
+
+        int tileCount = uiCanvas.transform.childCount;
+        return Rules.ReachableTiles(
+            from.occupyingUnit, fromIndex, tileCount,
+            i => { tile t = TileAt(i); return t != null ? t.landType : LandType.None; },
+            i => { tile t = TileAt(i); return t != null && t.occupyingUnit != UnitType.None; });
     }
 
     // ---------------------------------------------------------------- setup
