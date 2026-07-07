@@ -155,6 +155,7 @@ public class clicker : NetworkBehaviour
 
         from.attackedOnTurn = turn;
         int newHealth = target.health - Mathf.Max(0, Rules.AttackDamage(from.occupyingUnit));
+        target.RpcFlash(); // flash the hit on every client, attacker and defender alike
         if (newHealth <= 0) ClearUnit(target); // destroyed
         else target.health = newHealth;
     }

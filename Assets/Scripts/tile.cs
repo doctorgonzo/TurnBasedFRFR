@@ -1,3 +1,4 @@
+using System.Collections;
 using Mirror;
 using TMPro;
 using UnityEngine;
@@ -32,6 +33,11 @@ public class tile : NetworkBehaviour
     // on the ~half of the board that stays bare.
     TMP_Text healthLabel;
 
+    // While a hit-flash is playing, the coroutine owns the tile color; SyncVar hooks must not
+    // stomp it mid-animation (they settle the final color when it ends).
+    bool flashing;
+    Coroutine flashRoutine;
+
     void OnLandTypeChanged(LandType oldType, LandType newType) => RefreshColor();
     void OnUnitTypeChanged(UnitType oldType, UnitType newType)
     {
@@ -53,11 +59,43 @@ public class tile : NetworkBehaviour
     // unit correctly restores the land color underneath rather than leaving a stale color.
     void RefreshColor()
     {
+        if (flashing) return; // the flash coroutine owns the color until it finishes
         Image image = GetComponent<Image>();
-        if (image == null) return;
-        image.color = occupyingUnit != UnitType.None
-            ? GameTypes.ColorFor(occupyingUnit)
-            : GameTypes.ColorFor(landType);
+        if (image != null) image.color = CurrentColor();
+    }
+
+    // The color the tile should show right now given its unit/land, ignoring any flash.
+    Color CurrentColor() => occupyingUnit != UnitType.None
+        ? GameTypes.ColorFor(occupyingUnit)
+        : GameTypes.ColorFor(landType);
+
+    // Plays a quick white flash on the attacked unit on every client. Called on the server
+    // from clicker.CmdAttackUnit, so both players see the hit regardless of who threw it.
+    [ClientRpc]
+    public void RpcFlash()
+    {
+        if (!isActiveAndEnabled) return;
+        if (flashRoutine != null) StopCoroutine(flashRoutine);
+        flashRoutine = StartCoroutine(FlashRoutine());
+    }
+
+    IEnumerator FlashRoutine()
+    {
+        Image image = GetComponent<Image>();
+        if (image != null)
+        {
+            flashing = true;
+            for (int i = 0; i < 3; i++)
+            {
+                image.color = Color.white;
+                yield return new WaitForSeconds(0.07f);
+                image.color = CurrentColor();
+                yield return new WaitForSeconds(0.07f);
+            }
+            flashing = false;
+            RefreshColor(); // settle to the correct final color (unit died -> land, else unit)
+        }
+        flashRoutine = null;
     }
 
     // Shows the current health centered on the unit, or hides the label when the tile is empty.
