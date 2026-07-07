@@ -261,6 +261,9 @@ public class clicker : NetworkBehaviour
         if (hit.collider == null) return;
 
         if (hit.collider.CompareTag("tile")) ClickedTile(hit.collider.gameObject);
+        // Palette selection is turn-gated too: off-turn you can't pick anything up,
+        // so there's nothing "in hand" to place the moment your turn starts.
+        else if (!IsMyTurn()) return;
         else if (hit.collider.CompareTag("grass")) SelectedGrass();
         else if (hit.collider.CompareTag("water")) SelectedWater();
         else if (hit.collider.CompareTag("mountain")) SelectedMountain();
