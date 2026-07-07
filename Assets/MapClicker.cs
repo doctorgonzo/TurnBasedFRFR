@@ -15,6 +15,8 @@ public class MapClicker : NetworkBehaviour
     private tile selectedTile;
     // Empty tiles currently green-outlined as valid move destinations for the selection.
     private readonly List<tile> moveHighlights = new List<tile>();
+    // Enemy tiles currently red-outlined as valid attack targets for the selection.
+    private readonly List<tile> attackHighlights = new List<tile>();
 
     private void Update()
     {
@@ -86,6 +88,7 @@ public class MapClicker : NetworkBehaviour
         selectedTile = t;
         t.SetSelected(true);
         ShowMoveRange(t);
+        ShowAttackRange(t);
     }
 
     // Green-outlines every empty tile the selected unit could move to — but only when the
@@ -112,6 +115,33 @@ public class MapClicker : NetworkBehaviour
         }
     }
 
+    // Bright-red-outlines every enemy the selected unit could attack — but only when the unit
+    // can actually still attack this turn (not just placed, hasn't already attacked).
+    void ShowAttackRange(tile from)
+    {
+        clicker local = clicker.Local;
+        if (local == null || local.Rules == null || local.uiCanvas == null) return;
+
+        int turn = turns != null ? turns.TurnIndex : 0;
+        if (from.placedOnTurn == turn || from.attackedOnTurn == turn) return; // can't attack now
+
+        int me = local.LocalPlayerNumber;
+        int fromIndex = from.transform.GetSiblingIndex();
+        UnitType unit = from.occupyingUnit;
+        int count = local.uiCanvas.transform.childCount;
+        for (int i = 0; i < count; i++)
+        {
+            tile candidate = local.TileAt(i);
+            if (candidate == null || candidate == from) continue;
+            // Enemy unit (occupied, owned by the other player, not neutral).
+            if (candidate.occupyingUnit == UnitType.None ||
+                candidate.owningPlayer == me || candidate.owningPlayer == 0) continue;
+            if (!local.Rules.CanAttack(unit, fromIndex, i)) continue; // out of range
+            candidate.SetAttackHighlight(true);
+            attackHighlights.Add(candidate);
+        }
+    }
+
     void Deselect()
     {
         if (selectedTile != null) selectedTile.SetSelected(false);
@@ -119,5 +149,8 @@ public class MapClicker : NetworkBehaviour
         foreach (tile t in moveHighlights)
             if (t != null) t.SetMoveHighlight(false);
         moveHighlights.Clear();
+        foreach (tile t in attackHighlights)
+            if (t != null) t.SetAttackHighlight(false);
+        attackHighlights.Clear();
     }
 }

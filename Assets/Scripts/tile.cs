@@ -111,6 +111,25 @@ public class tile : NetworkBehaviour
         }
     }
 
+    // Client-only attack-range highlight: a bright red outline on an enemy unit the selected
+    // unit could attack. Like the move highlight, an attack target (enemy-occupied) is never
+    // the selected tile or a move target (empty), so they never share this component at once.
+    public void SetAttackHighlight(bool attackable)
+    {
+        Outline outline = GetComponent<Outline>();
+        if (attackable)
+        {
+            if (outline == null) outline = gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(1f, 0.1f, 0.1f);
+            outline.effectDistance = new Vector2(4f, 4f);
+            outline.enabled = true;
+        }
+        else if (outline != null)
+        {
+            outline.enabled = false;
+        }
+    }
+
     // Builds the TMP label as a child stretched over the whole tile, so its centered text
     // sits in the middle of the unit. Uses the project's default TMP font.
     void EnsureHealthLabel()
