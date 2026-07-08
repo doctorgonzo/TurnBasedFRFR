@@ -11,14 +11,16 @@ using UnityEngine;
 public class UnitRules
 {
     readonly UnitDatabase units;
+    readonly TerrainConfig terrain;
     readonly int boardWidth;
 
     // Tiny slack so a path that sums to exactly the move budget isn't rejected by float rounding.
     const float CostEpsilon = 1e-4f;
 
-    public UnitRules(UnitDatabase units, int boardWidth)
+    public UnitRules(UnitDatabase units, TerrainConfig terrain, int boardWidth)
     {
         this.units = units;
+        this.terrain = terrain;
         this.boardWidth = Mathf.Max(1, boardWidth);
     }
 
@@ -31,8 +33,12 @@ public class UnitRules
         Mathf.Abs(ColOf(fromIndex) - ColOf(toIndex));
 
     // Movement-point cost to ENTER a tile of this terrain (the tile you leave doesn't charge).
-    // A unit's UnitDef.moveRange is its budget of these points per turn.
-    public float EnterCost(LandType land)
+    // A unit's UnitDef.moveRange is its budget of these points per turn. Costs come from the
+    // TerrainConfig asset (tune in the inspector); the fallback only applies if none is wired.
+    public float EnterCost(LandType land) =>
+        terrain != null ? terrain.EnterCost(land) : DefaultEnterCost(land);
+
+    static float DefaultEnterCost(LandType land)
     {
         switch (land)
         {

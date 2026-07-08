@@ -55,6 +55,7 @@ MonoBehaviour:
   wCount: {fileID: 0}
   mCount: {fileID: 0}
   unitDatabase: {fileID: 11400000, guid: cccc1111dddd2222eeee3333ffff4444, type: 2}
+  terrainConfig: {fileID: 11400000, guid: ddddbbbb4444cccc5555dddd6666eeee, type: 2}
 --- !u!114 &7579839900230607224
 MonoBehaviour:
   m_ObjectHideFlags: 0

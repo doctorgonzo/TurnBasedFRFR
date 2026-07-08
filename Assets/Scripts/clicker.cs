@@ -34,6 +34,9 @@ public class clicker : NetworkBehaviour
     [Tooltip("Drag the Unit Database asset here (Assets/Units/Units). Drives starting " +
              "counts and per-unit move/attack rules.")]
     [SerializeField] UnitDatabase unitDatabase;
+    [Tooltip("Drag the Terrain Config asset here (Assets/Units/TerrainConfig). Sets the " +
+             "movement cost of each terrain type.")]
+    [SerializeField] TerrainConfig terrainConfig;
     [Tooltip("Number of columns in the board grid — the UICanvas GridLayoutGroup constraint " +
              "count. Used to turn a tile index into a (row, col) for range math.")]
     [SerializeField] int boardWidth = 8;
@@ -219,7 +222,7 @@ public class clicker : NetworkBehaviour
     // regardless of which runs first.
     void EnsureRules()
     {
-        if (Rules == null) Rules = new UnitRules(unitDatabase, boardWidth);
+        if (Rules == null) Rules = new UnitRules(unitDatabase, terrainConfig, boardWidth);
     }
 
     public override void OnStartServer()

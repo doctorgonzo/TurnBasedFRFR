@@ -522,6 +522,14 @@ PrefabInstance:
       propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
       objectReference: {fileID: 0}
+    - target: {fileID: 1652131572097371939, guid: 980cd08e775d00547814fd265d2923f2, type: 3}
+      propertyPath: m_Name
+      value: RoadImage
+      objectReference: {fileID: 0}
+    - target: {fileID: 1652131572097371939, guid: 980cd08e775d00547814fd265d2923f2, type: 3}
+      propertyPath: m_TagString
+      value: road
+      objectReference: {fileID: 0}
     - target: {fileID: 2221234706627467980, guid: 980cd08e775d00547814fd265d2923f2, type: 3}
       propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
@@ -529,6 +537,10 @@ PrefabInstance:
     - target: {fileID: 2241841758115370570, guid: 980cd08e775d00547814fd265d2923f2, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4009205662060767595, guid: 980cd08e775d00547814fd265d2923f2, type: 3}
+      propertyPath: m_Name
+      value: RoadCount
       objectReference: {fileID: 0}
     - target: {fileID: 4347914262678956503, guid: 980cd08e775d00547814fd265d2923f2, type: 3}
       propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
@@ -567,6 +579,10 @@ PrefabInstance:
       value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 5611252813653053714, guid: 980cd08e775d00547814fd265d2923f2, type: 3}
+      propertyPath: m_text
+      value: Road
+      objectReference: {fileID: 0}
+    - target: {fileID: 5611252813653053714, guid: 980cd08e775d00547814fd265d2923f2, type: 3}
       propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
       objectReference: {fileID: 0}
@@ -577,6 +593,18 @@ PrefabInstance:
     - target: {fileID: 6028505371551578936, guid: 980cd08e775d00547814fd265d2923f2, type: 3}
       propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
+      objectReference: {fileID: 0}
+    - target: {fileID: 6482397655947431183, guid: 980cd08e775d00547814fd265d2923f2, type: 3}
+      propertyPath: m_Color.b
+      value: 0.25542894
+      objectReference: {fileID: 0}
+    - target: {fileID: 6482397655947431183, guid: 980cd08e775d00547814fd265d2923f2, type: 3}
+      propertyPath: m_Color.g
+      value: 0.26415092
+      objectReference: {fileID: 0}
+    - target: {fileID: 6482397655947431183, guid: 980cd08e775d00547814fd265d2923f2, type: 3}
+      propertyPath: m_Color.r
+      value: 0.255647
       objectReference: {fileID: 0}
     - target: {fileID: 6641809816070271219, guid: 980cd08e775d00547814fd265d2923f2, type: 3}
       propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
